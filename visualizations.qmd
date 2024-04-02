@@ -1,0 +1,162 @@
+---
+title: "viz with ggplot2"
+author: "Stephanie Georges"
+format: html
+editor_options: 
+  chunk_output_type: console
+embed-resources: true
+---
+
+Load in gapminder data
+```{r}
+library(tidyverse) #dplyr and ggplot2 are in here
+gapminder_data <- read.csv("data/gapminder.csv")
+head(gapminder_data)
+```
+
+## Using ggplot2 to visualize data
+
+```{r}
+ggplot(gapminder_data) + 
+  geom_point(aes(x = gdpPercap, y = lifeExp))
+```
+
+## Create a ggplot scatterplot of pop vs lifeExp
+```{r}
+ggplot(gapminder_data) + 
+  geom_point(aes(x = pop, y = lifeExp))
+```
+
+# Only plot for year 2007
+
+```{r}
+gapminder_data |>
+  filter(year == 2007) |>
+  ggplot() +
+  geom_point(aes(x = pop, y = lifeExp))
+```
+
+
+## Defining ggplot2 aesthetics
+
+We can use columns in our data to specify aesthetics in the geometric objects (points) in our plot
+
+```{r}
+gapminder_2007 <- gapminder_data |>
+  filter(year == 2007)
+gapminder_2007 |> head()
+
+gapminder_2007 |> ggplot() + 
+  geom_point(aes(x = gdpPercap, 
+                 y = lifeExp, 
+                 color = continent))
+```
+
+To specify aesthetic value outside of a column, have to pass outside of aesthetic function call
+```{r}
+ggplot(gapminder_2007) + 
+  geom_point(aes(x = gdpPercap, y = lifeExp), color = "blue")
+```
+
+```{r}
+gapminder_2007 |> ggplot() +
+  geom_point(aes(x = gdpPercap, 
+                 y = lifeExp, 
+                 shape = continent))
+
+gapminder_2007 |> ggplot() +
+  geom_point(aes(x = gdpPercap, 
+                 y = lifeExp), 
+                 shape = "square")
+```
+
+### Specifying transparency
+```{r}
+gapminder_2007 |> ggplot() + 
+  geom_point(aes(x = gdpPercap, y = lifeExp, alpha = continent))
+```
+
+
+## Line plots
+
+Let's create a line plot of life exp by year for each country
+```{r}
+gapminder_data |>
+  filter(continent == "Americas") |>
+  ggplot() + geom_line(aes(x = year, y = lifeExp, group = country, color = country))
+```
+
+Compute avg life expectancy for each continent for each year, then plot avg life expectancy for each continent over time
+```{r}
+gapminder_data |> 
+  group_by(continent, year) |>
+  mutate(avgLifeExp = mean(lifeExp)) |>
+  ggplot() + 
+  geom_line(aes(x = year, 
+                y = avgLifeExp, 
+                color = continent))
+```
+
+
+# Help > Cheat Sheets has a good geom pdf
+
+Layering plots can be nice
+Can avoid argument redundancy by passing to initial ggplot function call, then layers inherit from there
+```{r}
+gapminder_data |> 
+  group_by(continent, year) |>
+  mutate(avgLifeExp = mean(lifeExp)) |>
+  ggplot(aes(x = year, 
+                y = avgLifeExp, 
+                color = continent)) + 
+  geom_line() +
+  geom_point()
+```
+
+
+## Getting fancy with ggplot2
+
+### Transformations
+
+You can easily apply log-scale transformations to your axes by adding a scale layers
+
+```{r}
+ggplot(gapminder_2007) +
+  geom_point(aes(x = gdpPercap, 
+                 y = lifeExp, 
+                 color = continent)) +
+  scale_x_log10()
+```
+
+### Labels
+
+```{r}
+my_scatter_plot <- ggplot(gapminder_2007) +
+  geom_point(aes(x = gdpPercap, 
+                 y = lifeExp, 
+                 color = continent)) +
+  scale_x_log10() +
+  labs(x = "GDP per capita", 
+       y = "Life expectancy", 
+       title = "GDP Per Cap vs Life Expectancy")
+```
+
+### Themes
+
+```{r}
+my_scatter_plot + theme_classic()
+```
+
+### Faceted grids
+
+```{r}
+ggplot(gapminder_data) +
+  geom_line(aes(x = year, 
+                y = lifeExp, 
+                group = country)) +
+  facet_wrap(~continent)
+```
+
+
+
+

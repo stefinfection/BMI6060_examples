@@ -1,0 +1,160 @@
+---
+title: "Vectors"
+author: "Steph Georges"
+format: html
+editor: visual
+embed-resources: true
+---
+
+Previously we were defining simple object such as 
+
+```{r}
+x <- 5
+```
+
+Let's create a vector
+```{r}
+age <- c(12, 19, 23, 35, 18)
+```
+
+Let's ask what type age is
+```{r}
+class(age)
+```
+We can't create a vector with multiple types
+It will coerce anything else into the 'highest' type - the hierarchy is characters > numeric > logical
+```{r}
+nums <- c(TRUE, 5)
+strings <- c("test", 5, -1)
+```
+
+You can do cool vector operations that apply to each element
+```{r}
+nums2 <- nums - 1
+```
+
+You can also do vector ops on 2 vectors
+```{r}
+age2 <- age - 1
+diff <- age - age2
+```
+
+If you try to do vector ops on differing length vectors, you get WARNING not error but it still works. In this case it **RECYCLES** the smaller values here - i.e. it will repeatedly use 1,2 until the end of the longer vector
+```{r}
+lengths <- age - c(1,2)
+```
+
+Can ask logical questions of vectors
+```{r}
+age >= 18
+```
+
+
+Let's ask if we have a value equal to 18 or 19
+```{r}
+age == 18 | age == 19
+age %in% c(18,19)
+```
+
+## Functions for vectors
+
+sum() function adds up all values in vector
+```{r}
+sum(age)
+```
+
+some others
+```{r}
+mean(age)
+length(age)
+```
+
+Can use the sum function to tally up output of logical ops
+```{r}
+sum(c(TRUE, FALSE))
+sum(c(18,19) %in% age)
+```
+
+
+## Indexing and Subsetting Vectors
+
+**ONE-BASED** indexing
+```{r}
+age[1]
+```
+
+To get a vector without a certain value, can use '-'
+The following removes the value at index 2
+```{r}
+age[-2]
+```
+
+To extract multiple values from a vector
+```{r}
+age[c(1,3)]
+```
+Can also subtract mutliple values this way
+```{r}
+age[-c(1,3)]
+```
+
+## Defining integer sequences
+
+Creating lots of values quickly
+```{r}
+out <- c(1,2,3,4)
+out <- 1:4
+```
+
+We can remove sequences from existing vectors with this notation
+**NOTE** this does not remove literal values in that range, but values at the indices in the given range
+```{r}
+filtered <- age[-(1:4)]
+```
+
+
+We can also create sequences of integers with non-unit increments
+```{r}
+seq(4,20,0.5)
+seq(from = 4,to = 20, by = 2)
+```
+
+
+**REFERENCE** put '?{fxn_name}' in console (e.g. ?seq)
+**EQUALS** are usually reserved for function arguments b/c they don't go into global environment
+
+You can add names to each individual entry in vectors
+```{r}
+names(age) <- c("Steph", "Todd", "Nadia", "Brad", "Deb")
+```
+
+Then can extract values based on those names
+```{r}
+age["Steph"] - 1
+```
+
+
+
+## Logical Subsetting
+
+```{r}
+# which entries are at least 18
+age >= 18
+```
+
+
+# we can subset vectors with logical ones
+```{r}
+age[c(TRUE, FALSE, TRUE, FALSE, TRUE)]
+age[age >= 20]
+```
+
+
+# we can combine criteria with single &
+```{r}
+age[(age > 18) & (age < 25)]
+```
+
+```{r}
+sum(c(1,5,6) >= 5)
+```

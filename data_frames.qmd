@@ -1,0 +1,283 @@
+---
+title: "Data Frames"
+author: "Stephanie Georges"
+format: html
+editor: visual
+embed-resources: true
+editor_options: 
+  chunk_output_type: console
+---
+
+# we can do some operations with related vectors
+
+```{r}
+age <- c(35, 44, 56, 23, 67)
+state <- c("UT", "NY", "NV", "CA", "MT")
+diabetes <- c(FALSE, FALSE, TRUE, TRUE, TRUE)
+
+sum(diabetes[age > 50])
+```
+
+# we could alternatively use data frames
+
+# NOTE: return syntax important here per function variable
+
+```{r}
+patient_data <- data.frame(age = c(35, 44, 56, 23, 67), 
+                           state = c("UT", "NY", "NV", "CA", "MT"), 
+                           diabetes = c(FALSE, FALSE, TRUE, TRUE, TRUE))
+```
+
+## Loading data from a CSV file
+
+```{r}
+data <- read.csv("file_in_same_project_dir.csv")
+```
+
+# to look at first few rows
+
+```{r}
+head(data)
+```
+
+# to see how many rows and columns our data frame has
+
+```{r}
+dim(data)
+nrow(data)
+ncol(data)
+```
+
+# to look at a summary of the data
+
+```{r}
+str(data)
+summary(data)
+```
+
+## Loading data from Excel
+
+# install the readxl package
+
+# NOTE: normally do this in the console directly so don't install on machine multiple times
+
+```{r}
+# run in console: install.packages("readxl")
+# to load package (do every session)
+library(readxl)
+```
+
+# load file in from excel
+
+```{r}
+excel_data <- read_xls()
+```
+
+## Working with data frames with base R
+
+```{r}
+gapminder_data <- read.csv("data/gapminder.csv")
+str(gapminder_data)
+```
+
+# To extract a single column from a data frame
+
+```{r}
+gapminder_data[3,4] #row,col
+gapminder_data[c(3,4),4] #prints two values, row 3 and 4 from col 4
+```
+
+# To extract a single column from a data frame as VECTORS
+
+```{r}
+gapminder_data[,4]
+head(gapminder_data[,"lifeExp"])
+gapminder_data$lifeExp
+```
+
+# To extract a single column from a data frame as a diff data frame
+
+```{r}
+gapminder_data[3]
+gapminder_data["pop"]
+```
+
+# To extract a data frame without a given column
+
+```{r}
+gapminder_data[-3]
+```
+
+## Working with data frames with dplyr and tidyverse
+
+Install and load tidyverse
+
+```{r}
+library(tidyverse)
+```
+
+The dplyr functions we'll use:
+
+-   select() - extracts cols from a data frame
+-   filter() - filter to rows of data frame based on condition
+-   mutate() - add or modify columns in data frame
+-   summarize() - aggregate info
+
+# Select
+
+```{r}
+head(select(gapminder_data, country, year, lifeExp))
+```
+
+We can also remove columns using select
+
+```{r}
+head(select(gapminder_data, -country, -year, -lifeExp))
+```
+
+We can also rename columns with select
+
+```{r}
+head(select(gapminder_data, country, year, life_exp = lifeExp))
+```
+
+# Pipes \|\> (%\>% also exists but have to load a libarary to use it)
+
+```{r}
+gapminder_data |> head()
+gapminder_data |> select(year, pop) |> head()
+```
+
+# Exercise: remove pop column and rename gdpPerCap to underscores and save as gapminder_new
+
+# Note: good practice to put each op on a new line
+
+```{r}
+head(gapminder_data)
+gapminder_new <- gapminder_data |> 
+  select(-pop) |> 
+  rename(gdp_per_cap = gdpPercap)
+head(gapminder_new)
+```
+
+## Filtering rows using filters
+
+# Filter to just data from Australia
+
+```{r}
+country_vec <- gapminder_data$country
+country_vec == "Australia"
+```
+
+# Can also use filter fxn
+
+```{r}
+filter(gapminder_data, country == "Australia")
+```
+
+Can provide multiple filtering criteria
+
+```{r}
+filter(gapminder_data, country == "Australia", pop > 1000000)
+filter(gapminder_data, (country == "Australia") & (pop > 1000000))
+gapminder_data |> filter(country == "Australia" & pop > 1000000)
+```
+
+Combining filtering and selecting
+
+```{r}
+gapminder_data |> 
+  filter(continent == "Africa" & year == 1992) |> 
+  select(country, gdp_per_cap = gdpPercap)
+```
+
+# Note: can use error directive to get more info from error
+
+```{r}
+#! error: true
+gapminder_data |>
+  select(country, life_exp = lifeExp) |>
+  filter(continent == "Africa")
+```
+
+## Adding and modifying columns using mutate
+
+Let's add a column gdp which is the product of gdpPercap and pop
+
+```{r}
+gapminder_data |>
+  mutate(gdp = pop * gdpPercap) |>
+  head()
+```
+
+Let's round lifeExp to the nearest integer
+
+```{r}
+gapminder_data |>
+  mutate(lifeExp = round(lifeExp)) |>
+  head()
+```
+
+Get new gapminder obj with a deathExp column which is year + lifeExp
+
+```{r}
+new_gapminder <- gapminder_data |>
+  mutate(deathExp = year + round(lifeExp))
+new_gapminder |> head()
+```
+
+## Summarizing data frames with summary()
+
+Use summarize to compute average lifeExp in entire data set
+
+```{r}
+gapminder_data |> summarize(mean_life_exp = mean(lifeExp))
+```
+
+# Real power is using summarize with group_by
+
+Compute avg lifeExp for each continent
+
+```{r}
+gapminder_data |> 
+  group_by(continent) |>
+  summarize(mean(lifeExp))
+```
+
+Compute max population for each country
+
+```{r}
+gapminder_data |>
+  group_by(country) |>
+  summarize(max_pop = max(pop))
+```
+
+## Use group_by with mutate
+
+Let's add a mean_life_exp column for each continent
+
+```{r}
+gapminder_data |>
+  group_by(continent) |>
+  mutate(mean_life_exp = mean(lifeExp))
+```
+
+# Note: if you want to perform subsequent fxn to chain and no longer want things to be grouped, use ungroup
+
+# especially important if storing output in new variable and then keep working with it!!
+
+```{r}
+gapminder_data |>
+  group_by(continent) |>
+  mutate(mean_life_exp = mean(lifeExp)) |>
+  ungroup() |>
+  summarize(mean(gdpPercap))
+```
+
+# Can group by multiple columns simultaneously
+
+```{r}
+gapminder_data |>
+  group_by(continent, year) |>
+  summarize(mean_life_exp = mean(lifeExp))
+```
